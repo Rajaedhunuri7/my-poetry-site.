@@ -3,118 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Verse Collective | Published</title>
+    <title>The Verse Collective</title>
     <style>
-        body {
-            font-family: 'Georgia', serif;
-            background-color: #f4f1ea;
-            color: #333;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
+        body { font-family: 'Georgia', serif; background-color: #f4f1ea; color: #333; padding: 20px; display: flex; flex-direction: column; align-items: center; }
         .container { max-width: 600px; width: 100%; }
-        header { text-align: center; margin-bottom: 40px; }
-        .editor-box {
-            background: #fff;
-            padding: 25px;
-            border-radius: 5px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            margin-bottom: 30px;
-        }
-        input, textarea {
-            width: 100%;
-            padding: 12px;
-            margin: 8px 0;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-family: inherit;
-            box-sizing: border-box;
-        }
-        button {
-            background: #4a4e69;
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 4px;
-            cursor: pointer;
-            width: 100%;
-            font-size: 1rem;
-        }
-        button:hover { background: #22223b; }
-        .poem-card {
-            background: white;
-            padding: 25px;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #4a4e69;
-        }
+        .editor-box { background: #fff; padding: 25px; border-radius: 5px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 30px; }
+        input, textarea { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        .btn-post { background: #4a4e69; color: white; border: none; padding: 12px; width: 100%; cursor: pointer; border-radius: 4px; }
+        .poem-card { background: white; padding: 25px; margin-bottom: 20px; position: relative; border-bottom: 2px solid #4a4e69; }
         .poem-title { font-size: 1.5rem; font-weight: bold; }
-        .poem-author { color: #888; margin-bottom: 15px; font-style: italic; }
-        .poem-content { white-space: pre-wrap; line-height: 1.8; }
+        .poem-content { white-space: pre-wrap; margin-top: 15px; font-style: italic; }
+        .delete-btn { position: absolute; top: 10px; right: 10px; background: #e63946; color: white; border: none; border-radius: 50%; width: 25px; height: 25px; cursor: pointer; font-size: 12px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <header>
-        <h1>The Verse Collective</h1>
-        <p>A permanent home for your stanzas.</p>
-    </header>
-
+    <h1>The Verse Collective</h1>
     <div class="editor-box">
         <input type="text" id="poemTitle" placeholder="Poem Title">
-        <input type="text" id="authorName" placeholder="Your Pen Name">
-        <textarea id="poemBody" rows="5" placeholder="Begin your poem..."></textarea>
-        <button onclick="addPoem()">Publish to My Wall</button>
+        <textarea id="poemBody" rows="5" placeholder="Write your poem..."></textarea>
+        <button class="btn-post" onclick="addPoem()">Post Poem</button>
     </div>
-
     <div id="poemFeed"></div>
 </div>
 
 <script>
-    // Load poems from local storage when page opens
-    window.onload = function() {
-        const savedPoems = JSON.parse(localStorage.getItem('myPoems')) || [];
-        savedPoems.forEach(poem => displayPoem(poem));
+    window.onload = () => {
+        const saved = JSON.parse(localStorage.getItem('myPoems')) || [];
+        saved.forEach((p, index) => displayPoem(p, index));
     };
 
     function addPoem() {
         const title = document.getElementById('poemTitle').value;
-        const author = document.getElementById('authorName').value;
         const content = document.getElementById('poemBody').value;
+        if (!title || !content) return;
 
-        if (!title || !content) return alert("Fill in the blanks!");
-
-        const newPoem = { title, author: author || "Anonymous", content };
-
-        // Save to Local Storage
-        const savedPoems = JSON.parse(localStorage.getItem('myPoems')) || [];
-        savedPoems.unshift(newPoem);
-        localStorage.setItem('myPoems', JSON.stringify(savedPoems));
-
-        displayPoem(newPoem, true);
-        
-        // Clear fields
-        document.getElementById('poemTitle').value = '';
-        document.getElementById('authorName').value = '';
-        document.getElementById('poemBody').value = '';
+        const poems = JSON.parse(localStorage.getItem('myPoems')) || [];
+        poems.unshift({ title, content });
+        localStorage.setItem('myPoems', JSON.stringify(poems));
+        location.reload(); // Refresh to update the list
     }
 
-    function displayPoem(poem, atTop = false) {
-        const feed = document.getElementById('poemFeed');
+    function deletePoem(index) {
+        const poems = JSON.parse(localStorage.getItem('myPoems'));
+        poems.splice(index, 1);
+        localStorage.setItem('myPoems', JSON.stringify(poems));
+        location.reload();
+    }
+
+    function displayPoem(poem, index) {
         const card = document.createElement('div');
         card.className = 'poem-card';
         card.innerHTML = `
+            <button class="delete-btn" onclick="deletePoem(${index})">X</button>
             <div class="poem-title">${poem.title}</div>
-            <div class="poem-author">By ${poem.author}</div>
             <div class="poem-content">${poem.content}</div>
         `;
-        if (atTop) feed.prepend(card);
-        else feed.appendChild(card);
+        document.getElementById('poemFeed').appendChild(card);
     }
 </script>
-
 </body>
 </html>
